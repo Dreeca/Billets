@@ -1,2 +1,4 @@
 streamlit
-openai
+onnxruntime
+numpy
+pandas

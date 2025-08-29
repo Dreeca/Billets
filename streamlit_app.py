@@ -1,53 +1,34 @@
 import streamlit as st
-from openai import OpenAI
+import numpy as np
+import pandas as pd
+from onnxruntime import InferenceSession
 
 # Show title and description.
 st.title("📄 Document question answering")
 st.write(
-    "Upload a document below and ask a question about it – GPT will answer! "
-    "To use this app, you need to provide an OpenAI API key, which you can get [here](https://platform.openai.com/account/api-keys). "
+    "Uploader un fichier pour détecter les faux billets"
 )
 
-# Ask user for their OpenAI API key via `st.text_input`.
-# Alternatively, you can store the API key in `./.streamlit/secrets.toml` and access it
-# via `st.secrets`, see https://docs.streamlit.io/develop/concepts/connections/secrets-management
-openai_api_key = st.text_input("OpenAI API Key", type="password")
-if not openai_api_key:
-    st.info("Please add your OpenAI API key to continue.", icon="🗝️")
-else:
+# Let the user upload a file via `st.file_uploader`.
+uploaded_file = st.file_uploader(
+    "Upload a document (.csv)", type=("csv")
+)
 
-    # Create an OpenAI client.
-    client = OpenAI(api_key=openai_api_key)
+model_path= '/workspaces/Billets/model.onnx'
 
-    # Let the user upload a file via `st.file_uploader`.
-    uploaded_file = st.file_uploader(
-        "Upload a document (.txt or .md)", type=("txt", "md")
-    )
+if uploaded_file:
+    df_billets = pd.read_csv(uploaded_file, index_col='id')
+    st.write(df_billets)
+    st.write(df_billets.dtypes)
 
-    # Ask the user for a question via `st.text_area`.
-    question = st.text_area(
-        "Now ask a question about the document!",
-        placeholder="Can you give me a short summary?",
-        disabled=not uploaded_file,
-    )
+    # Stream the response to the app using `st.write_stream`.
+    # st.write_stream(stream)
+    model = InferenceSession(model_path, providers=['CPUExecutionProvider'])
 
-    if uploaded_file and question:
 
-        # Process the uploaded file and question.
-        document = uploaded_file.read().decode()
-        messages = [
-            {
-                "role": "user",
-                "content": f"Here's a document: {document} \n\n---\n\n {question}",
-            }
-        ]
-
-        # Generate an answer using the OpenAI API.
-        stream = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=messages,
-            stream=True,
-        )
-
-        # Stream the response to the app using `st.write_stream`.
-        st.write_stream(stream)
+    input_name = model.get_inputs()[0].name
+    label_name = model.get_outputs()[0].name
+    prediction = model.run([label_name], {input_name: df_billets.to_numpy().astype(np.float32)})[0]
+    df_result = pd.DataFrame(prediction, index = df_billets.index, columns=['is_genuine'])
+    df_result = df_result.map(lambda x: x == 1)
+    st.write(df_result)
