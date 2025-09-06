@@ -19,7 +19,6 @@ model_path= 'model.onnx'
 if uploaded_file:
     df_billets = pd.read_csv(uploaded_file, index_col='id')
     st.write(df_billets)
-    st.write(df_billets.dtypes)
 
     # Stream the response to the app using `st.write_stream`.
     # st.write_stream(stream)
