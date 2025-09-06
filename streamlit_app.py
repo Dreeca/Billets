@@ -6,7 +6,7 @@ from onnxruntime import InferenceSession
 # Show title and description.
 st.title("📄 Document question answering")
 st.write(
-    "Uploader un fichier pour détecter les faux billets"
+    "Selectionner un fichier pour détecter les faux billets"
 )
 
 # Let the user upload a file via `st.file_uploader`.
@@ -14,7 +14,7 @@ uploaded_file = st.file_uploader(
     "Upload a document (.csv)", type=("csv")
 )
 
-model_path= '/workspaces/Billets/model.onnx'
+model_path= '\workspaces\Billets\model.onnx'
 
 if uploaded_file:
     df_billets = pd.read_csv(uploaded_file, index_col='id')
