@@ -28,9 +28,9 @@ if uploaded_file:
     input_name = model.get_inputs()[0].name
     label_name = model.get_outputs()[0].name
     prediction = model.run([label_name], {input_name: df_billets.to_numpy().astype(np.float32)})[0]
-    proba = model.get_outputs()[1].name
+    proba_name = model.get_outputs()[1].name
+    proba  = model.run([proba_name], {input_name: df_billets.to_numpy().astype(np.float32)})[0]
     df_result = pd.DataFrame(prediction, index = df_billets.index, columns=['is_genuine'])
     df_result = df_result.map(lambda x: x == 1)
-    df_proba = pd.DataFrame([proba], index = df_billets.index, columns=['is_genuine'])
-    df_result['probability'] = df_proba
+    df_result['probability'] = proba
     st.write(df_result)
