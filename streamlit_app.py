@@ -1,7 +1,6 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
-import seaborn as sns
 from onnxruntime import InferenceSession
 
 # Show title and description.
@@ -32,5 +31,3 @@ if uploaded_file:
     df_result = pd.DataFrame(prediction, index = df_billets.index, columns=['is_genuine'])
     df_result = df_result.map(lambda x: x == 1)
     st.write(df_result)
-    plot = sns.scatterplot(data=prediction, x='margin_low',y='length',hue='is_genuine')
-    st.pyplot(plot.get_figure())
